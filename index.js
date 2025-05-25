@@ -13,6 +13,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json())
+const authRouter=require("./Routes/authRoutes")
 app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
