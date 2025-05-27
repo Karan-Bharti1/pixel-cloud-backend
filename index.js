@@ -6,17 +6,18 @@ const cors=require('cors')
 require("./database/dbConnection")
 const PixelUser=require("./models/PixelUser")
 const corsOptions = {
-  origin: 'http://localhost:5173', 
+  origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   credentials: true, 
 };
 
 app.use(cors(corsOptions));
 app.use(express.json())
-const authRouter=require("./Routes/authRoutes")
+const authRoutes=require("./Routes/authRoutes")
 app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
+app.use("/auth",authRoutes)
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
