@@ -15,8 +15,9 @@ const albumSchema = new Schema({
     required: true   
   },
   sharedUsers: [{
-    type: Schema.Types.ObjectId,
-    ref: "PixelUser"
+    type: String,
+    match: [/^\S+@\S+\.\S+$/, 'Invalid email address']
+
   }]
 }, {
   timestamps: true
