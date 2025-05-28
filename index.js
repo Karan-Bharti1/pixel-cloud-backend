@@ -26,7 +26,7 @@ const newData=new PixelAlbum(data)
 const savedData=await newData.save()
 res.status(200).json(savedData)  
   } catch (error) {
-    res.status(500).json({message:"Failed to post album data"})
+    res.status(500).json({message:"Failed to post album data",error})
   }
 
 })
@@ -43,7 +43,19 @@ res.status(200).json({message:"Data fetched successfully",data})
     res.status(500).status({message:"Error while fetching album data:",error})
   }
 })
-
+app.get("/album/:ownerId",async(req,res)=>{
+  const data=await PixelAlbum.find({ownerId:req.params.ownerId})
+  
+  try {
+    if(data){
+res.status(200).json({message:"Data for the owner fetched successfully",data})
+  }else{
+    res.status(404).json({message:"Data not found"})
+  }
+  } catch (error) {
+    res.status(500).status({message:"Error while fetching album data:",error})
+  }
+})
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
