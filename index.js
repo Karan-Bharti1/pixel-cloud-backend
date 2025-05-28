@@ -56,6 +56,25 @@ res.status(200).json({message:"Data for the owner fetched successfully",data})
     res.status(500).status({message:"Error while fetching album data:",error})
   }
 })
+app.post("/album/:albumId/update", async (req, res) => {
+  try {
+    const updatedData = await PixelAlbum.findByIdAndUpdate(
+      req.params.albumId,
+      req.body,
+      { new: true }
+    );
+
+    if (updatedData) {
+      res.status(200).json({ message: "Album updated successfully", updatedData });
+    } else {
+      res.status(404).json({ message: "Album not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error while updating album data", error });
+  }
+});
+
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
