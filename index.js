@@ -74,7 +74,19 @@ app.post("/album/:albumId/update", async (req, res) => {
     res.status(500).json({ message: "Error while updating album data", error });
   }
 });
-
+app.delete("/album/:albumId",async(req,res)=>{
+  const deletedData= await PixelAlbum.findByIdAndDelete(req.params.albumId)
+  try {
+     if (deletedData) {
+      res.status(200).json({ message: "Album deleted successfully", deletedData });
+    } else {
+      res.status(404).json({ message: "Album not found" });
+    }
+    
+  } catch (error) {
+        res.status(500).json({ message: "Error while deleting album data", error });
+  }
+})
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
