@@ -3,6 +3,9 @@ const { Auth } = require("googleapis")
 const PORT=process.env.PORT||5000
 const app=express()
 const cors=require('cors')
+require('dotenv').config()
+const jwt=require("jsonwebtoken")
+const JWT_SECRET = process.env.JWT_SECRET
 require("./database/dbConnection")
 const PixelUser=require("./models/PixelUser")
 const corsOptions = {
@@ -13,6 +16,22 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json())
+const verifyJWT=(req,res,next)=>{
+    const token=req.headers["authorization"]
+    if(!token){
+        res.status(401).json({message:"No token was found"})
+    }
+   const authToken=token.split(' ')[1]
+    try {
+        const decodedToken=jwt.verify(authToken,JWT_SECRET)
+        console.log(decodedToken)
+        req.user=decodedToken
+        next()
+    } catch (error) {
+     
+       res.status(500).json({message:"Invalid Token",error}) 
+    }
+}
 const authRoutes=require("./Routes/authRoutes")
 const PixelAlbum = require("./models/PixelAlbum")
 app.get("/",(req,res)=>{
@@ -30,7 +49,7 @@ res.status(200).json(savedData)
   }
 
 })
-app.get("/album",async(req,res)=>{
+app.get("/album",verifyJWT,async(req,res)=>{
   const data=await PixelAlbum.find()
   
   try {
@@ -43,17 +62,19 @@ res.status(200).json({message:"Data fetched successfully",data})
     res.status(500).status({message:"Error while fetching album data:",error})
   }
 })
-app.get("/album/:ownerId",async(req,res)=>{
+app.get("/album/:ownerId",verifyJWT,async(req,res)=>{
   const data=await PixelAlbum.find({ownerId:req.params.ownerId})
   
   try {
     if(data){
-res.status(200).json({message:"Data for the owner fetched successfully",data})
+res.status(200).json(data)
   }else{
     res.status(404).json({message:"Data not found"})
   }
   } catch (error) {
+     
     res.status(500).status({message:"Error while fetching album data:",error})
+    console.log(error)
   }
 })
 app.post("/album/:albumId/update", async (req, res) => {
@@ -86,6 +107,18 @@ app.delete("/album/:albumId",async(req,res)=>{
   } catch (error) {
         res.status(500).json({ message: "Error while deleting album data", error });
   }
+})
+app.get("/albums/album/:id",async(req,res)=>{
+   const data=await PixelAlbum.findOne({_id:req.params.id})
+try {
+  if(data){
+res.status(200).json(data)
+  }else{
+    res.status(404).json({message:"Data not found"})
+  } 
+} catch (error) {
+   res.status(500).status({message:"Error while fetching album data:",error})
+}
 })
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)

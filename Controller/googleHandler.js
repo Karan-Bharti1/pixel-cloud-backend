@@ -2,6 +2,7 @@ const { default: axios } = require("axios")
 const PixelUser = require("../models/PixelUser")
 const oauth2Client=require("../utils/googleConfig")
 const jwt=require("jsonwebtoken")
+require('dotenv').config()
  const googleHandler=async(req,res)=>{
 try {
     const {code}=req.query
