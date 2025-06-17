@@ -1,5 +1,7 @@
 const express=require("express")
 const { Auth } = require("googleapis")
+const cloudinary=require('cloudinary')
+const multer=require('multer')
 const PORT=process.env.PORT||5000
 const app=express()
 const cors=require('cors')
@@ -8,14 +10,46 @@ const jwt=require("jsonwebtoken")
 const JWT_SECRET = process.env.JWT_SECRET
 require("./database/dbConnection")
 const PixelUser=require("./models/PixelUser")
+const PixelImage=require('./models/PixelImage')
+app.use(express.json()); // For parsing application/json
+app.use(express.urlencoded({ extended: true })); // For parsing form data
+
 const corsOptions = {
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   credentials: true, 
 };
 
+cloudinary.config({
+    cloud_name:process.env.CLOUDINARY_NAME,
+    api_key:process.env.CLOUDINARY_API_KEY,
+    api_secret:process.env.CLOUDINARY_API_SECRET
+})
+//multer
+const storage=multer.diskStorage({})
+const upload=multer({storage})
 app.use(cors(corsOptions));
-app.use(express.json())
+
+app.post("/upload",upload.single("image"),async(req,res)=>{
+try {
+    const file=req.file
+    if(!file){
+        return res.status(400).send("NO file uploaded ")
+
+    }
+    const result=await cloudinary.uploader.upload(file.path,{
+        folder:"uploads"
+    })
+    console.log(result)
+    //  Storing in Mongodb
+    const newImage=new ImageUrl({imageUrl:result.secure_url})
+    await newImage.save()
+    res.status(200).json({message:"Image Uploaded successfully",imageUrl:result.secure_url})
+} catch (error) {
+    res.status(500).json({message:"Failed to upload image data",error})
+}
+})
+
 const verifyJWT=(req,res,next)=>{
     const token=req.headers["authorization"]
     if(!token){
@@ -34,6 +68,7 @@ const verifyJWT=(req,res,next)=>{
 }
 const authRoutes=require("./Routes/authRoutes")
 const PixelAlbum = require("./models/PixelAlbum")
+const bodyParser = require("body-parser")
 app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
@@ -77,7 +112,7 @@ res.status(200).json(data)
     console.log(error)
   }
 })
-app.post("/album/:albumId/update", async (req, res) => {
+app.post("/album/:albumId/update",verifyJWT, async (req, res) => {
   try {
     const updatedData = await PixelAlbum.findByIdAndUpdate(
       req.params.albumId,
@@ -120,6 +155,57 @@ res.status(200).json(data)
    res.status(500).status({message:"Error while fetching album data:",error})
 }
 })
+
+
+app.post("/upload", upload.single("image"), async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).send("No file uploaded");
+    }
+
+    const {
+      albumId,
+      name,
+      tags, 
+      isFavorite,
+      person,
+    } = req.body;
+
+    // Parse the tags string into an actual array
+    const tagsArray = tags ? JSON.parse(tags) : [];
+
+    // Upload to cloudinary
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: "uploads",
+    });
+
+    // Store in MongoDB
+    const newImage = new PixelImage({
+      albumId: new mongoose.Types.ObjectId(albumId),
+      name,
+      tags: tagsArray,
+      isFavorite: isFavorite === "true",
+      person: person || "",
+      size: file.size,
+      imageUrl: result.secure_url,
+    });
+
+    await newImage.save();
+
+    res.status(200).json({
+      message: "Image uploaded successfully",
+      imageUrl: result.secure_url,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to upload image data",
+      error: error.message,
+    });
+  }
+});
+
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })

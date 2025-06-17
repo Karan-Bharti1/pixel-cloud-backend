@@ -1,24 +1,13 @@
 const mongoose=require("mongoose")
+const PixelAlbum = require("./PixelAlbum")
 
-const commentSchema = new Schema({
-  userEmail: {
-    type: String,
-    match: [/^\S+@\S+\.\S+$/, 'Invalid email address']
-  },
-  text: {
-    type: String,
-    required: true
-  },
-  commentedAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+const { Schema } = mongoose;
+
 const imageSchema=new mongoose.Schema({
 albumId:{
-    type:Schema.Types.ObjectId,
+   type: Schema.Types.ObjectId,
     ref:"PixelAlbum",
-    requireed:true
+    required:true
 },name:{
     type:String,
    required:true
@@ -32,7 +21,7 @@ isFavorite:{
 person:{
 type:String
 },
-comments:[commentSchema],
+comments:[{type:String}],
  size: {
     type: Number,
     required: true
