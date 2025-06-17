@@ -1,6 +1,7 @@
 const express=require("express")
 const { Auth } = require("googleapis")
 const cloudinary=require('cloudinary')
+const mongoose=require('mongoose')
 const multer=require('multer')
 const PORT=process.env.PORT||5000
 const app=express()
@@ -30,25 +31,6 @@ const storage=multer.diskStorage({})
 const upload=multer({storage})
 app.use(cors(corsOptions));
 
-app.post("/upload",upload.single("image"),async(req,res)=>{
-try {
-    const file=req.file
-    if(!file){
-        return res.status(400).send("NO file uploaded ")
-
-    }
-    const result=await cloudinary.uploader.upload(file.path,{
-        folder:"uploads"
-    })
-    console.log(result)
-    //  Storing in Mongodb
-    const newImage=new ImageUrl({imageUrl:result.secure_url})
-    await newImage.save()
-    res.status(200).json({message:"Image Uploaded successfully",imageUrl:result.secure_url})
-} catch (error) {
-    res.status(500).json({message:"Failed to upload image data",error})
-}
-})
 
 const verifyJWT=(req,res,next)=>{
     const token=req.headers["authorization"]
@@ -167,9 +149,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const {
       albumId,
       name,
-      tags, 
-      isFavorite,
-      person,
+      tags
     } = req.body;
 
     // Parse the tags string into an actual array
@@ -179,14 +159,12 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const result = await cloudinary.uploader.upload(file.path, {
       folder: "uploads",
     });
-
+console.log({"AlbumId":albumId})
     // Store in MongoDB
     const newImage = new PixelImage({
       albumId: new mongoose.Types.ObjectId(albumId),
       name,
       tags: tagsArray,
-      isFavorite: isFavorite === "true",
-      person: person || "",
       size: file.size,
       imageUrl: result.secure_url,
     });
@@ -205,7 +183,18 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     });
   }
 });
-
+app.get("/images/:albumId",async(req,res)=>{
+  try {
+   const images=await PixelImage.find({albumId:req.params.albumId}) 
+   if(images){
+    res.status(200).json(images)
+   }else{
+    res.status(404).json({message:"Images Not Found"})
+   }
+  } catch (error) {
+    res.status(500).status({message:"Error while fetching album data:",error})
+  }
+})
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })

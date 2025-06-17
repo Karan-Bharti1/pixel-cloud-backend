@@ -14,6 +14,10 @@ albumId:{
 },tags:[{
     type:String
 }],
+imageUrl: {
+  type: String,
+  required: true
+},
 isFavorite:{
     type:Boolean,
     default:false
