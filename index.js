@@ -195,6 +195,29 @@ app.get("/images/:albumId",async(req,res)=>{
     res.status(500).status({message:"Error while fetching album data:",error})
   }
 })
+app.delete("/images/delete-by-album/:albumId",  async (req, res) => {
+  try {
+    const { albumId } = req.params;
+    const images = await PixelImage.find({ albumId })
+    if (images.length === 0) {
+      return res.status(404).json({ message: "No images found for this album" });
+    }
+
+    const deleteResult = await PixelImage.deleteMany({ albumId });
+
+    res.status(200).json({
+      message: "All images deleted successfully for this album",
+      deletedCount: deleteResult.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error while deleting images:", error);
+    res.status(500).json({
+      message: "Failed to delete images",
+      error: error.message,
+    });
+  }
+});
+
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
