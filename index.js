@@ -94,7 +94,7 @@ res.status(200).json(data)
     console.log(error)
   }
 })
-app.post("/album/:albumId/update",verifyJWT, async (req, res) => {
+app.post("/album/:albumId/update", async (req, res) => {
   try {
     const updatedData = await PixelAlbum.findByIdAndUpdate(
       req.params.albumId,
@@ -213,6 +213,46 @@ app.delete("/images/delete-by-album/:albumId",  async (req, res) => {
     console.error("Error while deleting images:", error);
     res.status(500).json({
       message: "Failed to delete images",
+      error: error.message,
+    });
+  }
+});
+app.delete("/image/:imageId",async(req,res)=>{
+  try{
+const imageId=req.params.imageId
+const deletedItem=await PixelImage.findByIdAndDelete(imageId)
+if(deletedItem){
+  res.status(200).json({message:"Image Deleted Successfully",deletedItem})
+}else{
+  res.status(404).json({message:"Image not found"})
+}
+  }catch{
+res.status(500).json({message:"Failed to delete image"})
+  }
+})
+app.post("/image-update/:imageId", async (req, res) => {
+  try {
+    const imageId = req.params.imageId;
+    const updatedData = req.body;
+
+    const updatedImage = await PixelImage.findByIdAndUpdate(
+      imageId,
+      updatedData,
+      { new: true }
+    );
+
+    if (updatedImage) {
+      res.status(200).json({
+        message: "Image updated successfully",
+        updatedImage,
+      });
+    } else {
+      res.status(404).json({ message: "Image not found" });
+    }
+  } catch (error) {
+    console.error("Error while updating image:", error);
+    res.status(500).json({
+      message: "Failed to update image",
       error: error.message,
     });
   }
