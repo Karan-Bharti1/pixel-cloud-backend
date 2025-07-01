@@ -253,14 +253,16 @@ app.post("/image-update/:imageId", async (req, res) => {
 });
 app.get("/image/:imageId",async(req,res)=>{
   try {
-    const image=await PixelImage.find(req.params.imageId)
+    const image=await PixelImage.findOne({_id:req.params.imageId})
     if(image){
       res.status(200).json(image)
     }
     else {
       res.status(404).json({ message: "Image not found" });
+
     }
   } catch (error) {
+    console.log(error)
   res.status(500).json({message:"Failed to fetch image data"})  
   }
 })
