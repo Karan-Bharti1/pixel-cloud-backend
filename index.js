@@ -169,12 +169,9 @@ console.log({"AlbumId":albumId})
       imageUrl: result.secure_url,
     });
 
-    await newImage.save();
+    const finalImage=await newImage.save();
 
-    res.status(200).json({
-      message: "Image uploaded successfully",
-      imageUrl: result.secure_url,
-    });
+    res.status(200).json(finalImage);
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -242,10 +239,7 @@ app.post("/image-update/:imageId", async (req, res) => {
     );
 
     if (updatedImage) {
-      res.status(200).json({
-        message: "Image updated successfully",
-        updatedImage,
-      });
+      res.status(200).json(updatedImage);
     } else {
       res.status(404).json({ message: "Image not found" });
     }
@@ -257,7 +251,19 @@ app.post("/image-update/:imageId", async (req, res) => {
     });
   }
 });
-
+app.get("/image/:imageId",async(req,res)=>{
+  try {
+    const image=await PixelImage.find(req.params.imageId)
+    if(image){
+      res.status(200).json(image)
+    }
+    else {
+      res.status(404).json({ message: "Image not found" });
+    }
+  } catch (error) {
+  res.status(500).json({message:"Failed to fetch image data"})  
+  }
+})
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
