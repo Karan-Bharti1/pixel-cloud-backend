@@ -51,6 +51,7 @@ const verifyJWT=(req,res,next)=>{
 const authRoutes=require("./Routes/authRoutes")
 const PixelAlbum = require("./models/PixelAlbum")
 const bodyParser = require("body-parser")
+const PixelComment = require("./models/PixelComment")
 app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
@@ -266,6 +267,42 @@ app.get("/image/:imageId",async(req,res)=>{
   res.status(500).json({message:"Failed to fetch image data"})  
   }
 })
+app.post("/image/comment",async(req,res)=>{
+  try {
+    const commentData=req.body
+    const newComment=new PixelComment(commentData)
+    const savedData=await newComment.save()
+    if(savedData){
+      res.status(200).json(savedData)
+    }
+  } catch (error) {
+     res.status(500).json({message:"Failed to add comment to the image"}) 
+  }
+})
+
+
+
+
+app.get("/image/comment/:imageId", async (req, res) => {
+  const { imageId } = req.params;
+
+  try {
+    const objectId = new mongoose.Types.ObjectId(imageId); // ✅ Convert it
+    const imageData = await PixelComment.find({ imageId: objectId });
+
+    if (imageData && imageData.length > 0) {
+      res.status(200).json(imageData);
+    } else {
+      res.status(404).json({ message: "Comments not found." });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Failed to find comments for the image" });
+  }
+});
+
+
+
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
