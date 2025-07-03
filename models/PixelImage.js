@@ -25,7 +25,7 @@ isFavorite:{
 person:{
 type:String
 },
-comments:[{type:String}],
+
  size: {
     type: Number,
     required: true

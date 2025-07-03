@@ -1,0 +1,15 @@
+const mongoose=require("mongoose")
+const commentSchema=new mongoose.Schema({
+    text:{
+        type:String,
+        required:true
+    },
+   imageId: {
+   type: Schema.Types.ObjectId,
+    ref:"PixelImage",
+    required:true
+}
+},{
+    timestamps:true
+})
+module.exports=mongoose.model("PixelComments",commentSchema)
