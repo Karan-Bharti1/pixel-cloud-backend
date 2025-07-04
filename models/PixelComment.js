@@ -3,7 +3,8 @@ const { Schema } = mongoose;
 const commentSchema=new mongoose.Schema({
     text:{
         type:String,
-        required:true
+        required:true,
+        unique:false
     },
    imageId: {
    type: Schema.Types.ObjectId,

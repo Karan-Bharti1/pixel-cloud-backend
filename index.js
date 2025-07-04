@@ -1,5 +1,6 @@
 const express=require("express")
 const { Auth } = require("googleapis")
+const nodemailer=require('nodemailer')
 const cloudinary=require('cloudinary')
 const mongoose=require('mongoose')
 const multer=require('multer')
@@ -14,7 +15,16 @@ const PixelUser=require("./models/PixelUser")
 const PixelImage=require('./models/PixelImage')
 app.use(express.json()); // For parsing application/json
 app.use(express.urlencoded({ extended: true })); // For parsing form data
-
+const transporter=nodemailer.createTransport({
+  service:'gmail',
+  host:'smtp.gmail.com',
+  secure:false,
+  port:587,
+  auth:{
+    user:process.env.EMAIL,
+    pass:process.env.PASSWORD
+  }
+})
 const corsOptions = {
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
@@ -267,18 +277,30 @@ app.get("/image/:imageId",async(req,res)=>{
   res.status(500).json({message:"Failed to fetch image data"})  
   }
 })
-app.post("/image/comment",async(req,res)=>{
+
+
+app.post("/image/comment", async (req, res) => {
   try {
-    const commentData=req.body
-    const newComment=new PixelComment(commentData)
-    const savedData=await newComment.save()
-    if(savedData){
-      res.status(200).json(savedData)
+    const { imageId, text } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(imageId)) {
+      return res.status(400).json({ message: "Invalid image ID" });
     }
+
+    const newComment = new PixelComment({
+      imageId: new mongoose.Types.ObjectId(imageId),
+      text
+    });
+
+    const savedData = await newComment.save();
+
+    return res.status(200).json(savedData);
   } catch (error) {
-     res.status(500).json({message:"Failed to add comment to the image"}) 
+    console.error("POST /image/comment failed:", error);
+    return res.status(500).json({ message: "Failed to add comment to the image" });
   }
-})
+});
+
 
 
 
@@ -290,7 +312,7 @@ app.get("/image/comment/:imageId", async (req, res) => {
     const objectId = new mongoose.Types.ObjectId(imageId); // ✅ Convert it
     const imageData = await PixelComment.find({ imageId: objectId });
 
-    if (imageData && imageData.length > 0) {
+    if (imageData) {
       res.status(200).json(imageData);
     } else {
       res.status(404).json({ message: "Comments not found." });
@@ -298,6 +320,60 @@ app.get("/image/comment/:imageId", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Failed to find comments for the image" });
+  }
+});
+app.post("/albums/:albumId/share", async (req, res) => {
+  const { users, images } = req.body;
+  const albumId = req.params.albumId;
+
+  try {
+    const album = await PixelAlbum.findById(albumId);
+    if (!album) {
+      return res.status(404).json({ message: "Album not found" });
+    }
+
+   const htmlBody = `
+  <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px;">
+      <h2 style="text-align: center; color: #333;">📸 ${album.name}</h2>
+      <p style="font-size: 16px; color: #555;">
+        Hey there 👋,<br/><br/>
+        I'd love to share my latest album with you. Click the images below to view them in full size!
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+        ${images
+          .map(
+            url => `
+              <a href="${url}" target="_blank" rel="noopener noreferrer">
+                <img src="${url}" style="width: 100%; border-radius: 10px; cursor: pointer;" />
+              </a>
+            `
+          )
+          .join('')}
+      </div>
+      <p style="margin-top: 30px; font-size: 16px; color: #555;">
+        Want to explore more amazing albums?<br/>
+        👉 Visit <a href="/" style="color: #007BFF; text-decoration: none;">Pixel Cloud</a>
+      </p>
+    </div>
+  </div>
+`;
+
+
+    for (const email of users) {
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: email,
+        subject: `📸 ${album.name} Album Shared With You`,
+        html: htmlBody,
+      });
+    }
+
+    res.status(200).json({ message: "Emails sent successfully" });
+
+  } catch (error) {
+    console.error("Error sending emails:", error);
+    res.status(500).json({ message: "Failed to send emails", error });
   }
 });
 
