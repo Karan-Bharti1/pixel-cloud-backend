@@ -309,7 +309,7 @@ app.get("/image/comment/:imageId", async (req, res) => {
   const { imageId } = req.params;
 
   try {
-    const objectId = new mongoose.Types.ObjectId(imageId); // ✅ Convert it
+    const objectId = new mongoose.Types.ObjectId(imageId); 
     const imageData = await PixelComment.find({ imageId: objectId });
 
     if (imageData) {
@@ -325,9 +325,9 @@ app.get("/image/comment/:imageId", async (req, res) => {
 app.post("/albums/:albumId/share", async (req, res) => {
   const { users, images } = req.body;
   const albumId = req.params.albumId;
-
+console.log(req.body)
   try {
-    const album = await PixelAlbum.findById(albumId);
+    const album = await PixelAlbum.findById(albumId).populate("ownerId")
     if (!album) {
       return res.status(404).json({ message: "Album not found" });
     }
@@ -335,7 +335,7 @@ app.post("/albums/:albumId/share", async (req, res) => {
    const htmlBody = `
   <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px;">
-      <h2 style="text-align: center; color: #333;">📸 ${album.name}</h2>
+      
       <p style="font-size: 16px; color: #555;">
         Hey there 👋,<br/><br/>
         I'd love to share my latest album with you. Click the images below to view them in full size!
@@ -353,7 +353,7 @@ app.post("/albums/:albumId/share", async (req, res) => {
       </div>
       <p style="margin-top: 30px; font-size: 16px; color: #555;">
         Want to explore more amazing albums?<br/>
-        👉 Visit <a href="/" style="color: #007BFF; text-decoration: none;">Pixel Cloud</a>
+        
       </p>
     </div>
   </div>
@@ -361,12 +361,13 @@ app.post("/albums/:albumId/share", async (req, res) => {
 
 
     for (const email of users) {
-      await transporter.sendMail({
-        from: process.env.EMAIL,
-        to: email,
-        subject: `📸 ${album.name} Album Shared With You`,
-        html: htmlBody,
-      });
+    await transporter.sendMail({
+  from: `"Pixel Cloud " <${process.env.EMAIL}>`,
+  to: email,
+  subject: ` ${album.ownerId.name} has  Shared album With You`,
+ text: `Hey! I'm sharing my Pixel Cloud album: ${album.name}. Visit Pixel Cloud to check.`,
+html: htmlBody,
+});
     }
 
     res.status(200).json({ message: "Emails sent successfully" });
@@ -377,7 +378,18 @@ app.post("/albums/:albumId/share", async (req, res) => {
   }
 });
 
-
+app.get("/likedImages",async(req,res)=>{
+  try{
+const images=await PixelImage.find({isFavorite:true})
+if(images){
+  res.status(200).json(images)
+}else{
+  res.status(404).json({message:"No Images found"})
+}
+  }catch{
+res.status(500).json({message:"Failed to fetch liked images "})
+  }
+})
 
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
