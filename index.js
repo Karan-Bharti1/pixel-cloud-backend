@@ -378,11 +378,16 @@ html: htmlBody,
   }
 });
 
-app.get("/likedImages",async(req,res)=>{
+app.get("/liked-images/:ownerId",async(req,res)=>{
+ 
   try{
-const images=await PixelImage.find({isFavorite:true})
-if(images){
-  res.status(200).json(images)
+const images=await PixelImage.find({isFavorite:true}).populate("albumId")
+const userLikedImages = images.filter(
+  (img) => img.albumId?.ownerId?.toString() === req.params.ownerId
+);
+
+if(userLikedImages){
+  res.status(200).json(userLikedImages)
 }else{
   res.status(404).json({message:"No Images found"})
 }
