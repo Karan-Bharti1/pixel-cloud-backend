@@ -396,7 +396,21 @@ if(userLikedImages){
 res.status(500).json({message:"Failed to fetch liked images "})
   }
 })
-
+app.get("/recycle/:ownerId",async(req,res)=>{
+  try{
+const recycledImages=await PixelImage.find({isDeleted:true}).populate("albumId")
+console.log(recycledImages)
+const requiredData=recycledImages?.filter(img=>img.albumId.ownerId)
+if(requiredData){
+  res.status(200).json(requiredData)
+}else{
+  res.status(404).json({message:"No Data Found"})
+}
+  }catch(err){
+console.log(err)
+    res.status(500).json({message: "Failed to get Images Data"})
+  }
+})
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
