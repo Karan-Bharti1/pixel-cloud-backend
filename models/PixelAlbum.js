@@ -14,6 +14,10 @@ const albumSchema = new Schema({
     ref: "PixelUser",
     required: true   
   },
+  isDeleted:{
+    type:Boolean,
+    default:false
+  },
   sharedUsers: [{
     type: String,
     match: [/^\S+@\S+\.\S+$/, 'Invalid email address']

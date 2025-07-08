@@ -62,6 +62,7 @@ const authRoutes=require("./Routes/authRoutes")
 const PixelAlbum = require("./models/PixelAlbum")
 const bodyParser = require("body-parser")
 const PixelComment = require("./models/PixelComment")
+
 app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
