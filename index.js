@@ -67,7 +67,7 @@ app.get("/",(req,res)=>{
     res.send("Server is Good to go")// Server testing
 })
 app.use("/auth",authRoutes)
-app.post("/album",async(req,res)=>{
+app.post("/album",verifyJWT,async(req,res)=>{
   try {
   const data=req.body
 const newData=new PixelAlbum(data)
@@ -106,7 +106,7 @@ res.status(200).json(data)
     console.log(error)
   }
 })
-app.post("/album/:albumId/update", async (req, res) => {
+app.post("/album/:albumId/update",verifyJWT, async (req, res) => {
   try {
     const updatedData = await PixelAlbum.findByIdAndUpdate(
       req.params.albumId,
@@ -124,7 +124,7 @@ app.post("/album/:albumId/update", async (req, res) => {
     res.status(500).json({ message: "Error while updating album data", error });
   }
 });
-app.delete("/album/:albumId",async(req,res)=>{
+app.delete("/album/:albumId",verifyJWT,async(req,res)=>{
   const deletedData= await PixelAlbum.findByIdAndDelete(req.params.albumId)
   try {
      if (deletedData) {
@@ -137,7 +137,7 @@ app.delete("/album/:albumId",async(req,res)=>{
         res.status(500).json({ message: "Error while deleting album data", error });
   }
 })
-app.get("/albums/album/:id",async(req,res)=>{
+app.get("/albums/album/:id",verifyJWT,async(req,res)=>{
    const data=await PixelAlbum.findOne({_id:req.params.id})
 try {
   if(data){
@@ -151,7 +151,7 @@ res.status(200).json(data)
 })
 
 
-app.post("/upload", upload.single("image"), async (req, res) => {
+app.post("/upload",verifyJWT, upload.single("image"), async (req, res) => {
   try {
     const file = req.file;
     if (!file) {
@@ -192,9 +192,9 @@ console.log({"AlbumId":albumId})
     });
   }
 });
-app.get("/images/:albumId",async(req,res)=>{
+app.get("/images/:albumId",verifyJWT,async(req,res)=>{
   try {
-   const images=await PixelImage.find({albumId:req.params.albumId}) 
+   const images=await PixelImage.find({albumId:req.params.albumId,isDeleted:false}) 
    if(images){
     res.status(200).json(images)
    }else{
@@ -204,7 +204,7 @@ app.get("/images/:albumId",async(req,res)=>{
     res.status(500).status({message:"Error while fetching album data:",error})
   }
 })
-app.delete("/images/delete-by-album/:albumId",  async (req, res) => {
+app.delete("/images/delete-by-album/:albumId",verifyJWT,  async (req, res) => {
   try {
     const { albumId } = req.params;
     const images = await PixelImage.find({ albumId })
@@ -226,7 +226,7 @@ app.delete("/images/delete-by-album/:albumId",  async (req, res) => {
     });
   }
 });
-app.delete("/image/:imageId",async(req,res)=>{
+app.delete("/image/:imageId",verifyJWT,async(req,res)=>{
   try{
 const imageId=req.params.imageId
 const deletedItem=await PixelImage.findByIdAndDelete(imageId)
@@ -239,7 +239,7 @@ if(deletedItem){
 res.status(500).json({message:"Failed to delete image"})
   }
 })
-app.post("/image-update/:imageId", async (req, res) => {
+app.post("/image-update/:imageId",verifyJWT, async (req, res) => {
   try {
     const imageId = req.params.imageId;
     const updatedData = req.body;
@@ -263,7 +263,7 @@ app.post("/image-update/:imageId", async (req, res) => {
     });
   }
 });
-app.get("/image/:imageId",async(req,res)=>{
+app.get("/image/:imageId",verifyJWT,async(req,res)=>{
   try {
     const image=await PixelImage.findOne({_id:req.params.imageId})
     if(image){
@@ -280,7 +280,7 @@ app.get("/image/:imageId",async(req,res)=>{
 })
 
 
-app.post("/image/comment", async (req, res) => {
+app.post("/image/comment",verifyJWT, async (req, res) => {
   try {
     const { imageId, text } = req.body;
 
@@ -306,7 +306,7 @@ app.post("/image/comment", async (req, res) => {
 
 
 
-app.get("/image/comment/:imageId", async (req, res) => {
+app.get("/image/comment/:imageId",verifyJWT, async (req, res) => {
   const { imageId } = req.params;
 
   try {
@@ -323,7 +323,7 @@ app.get("/image/comment/:imageId", async (req, res) => {
     res.status(500).json({ message: "Failed to find comments for the image" });
   }
 });
-app.post("/albums/:albumId/share", async (req, res) => {
+app.post("/albums/:albumId/share",verifyJWT, async (req, res) => {
   const { users, images } = req.body;
   const albumId = req.params.albumId;
 console.log(req.body)
@@ -379,7 +379,7 @@ html: htmlBody,
   }
 });
 
-app.get("/liked-images/:ownerId",async(req,res)=>{
+app.get("/liked-images/:ownerId",verifyJWT,async(req,res)=>{
  
   try{
 const images=await PixelImage.find({isFavorite:true}).populate("albumId")
@@ -396,7 +396,7 @@ if(userLikedImages){
 res.status(500).json({message:"Failed to fetch liked images "})
   }
 })
-app.get("/recycle/:ownerId",async(req,res)=>{
+app.get("/recycle/:ownerId",verifyJWT,async(req,res)=>{
   try{
 const recycledImages=await PixelImage.find({isDeleted:true}).populate("albumId")
 console.log(recycledImages)
