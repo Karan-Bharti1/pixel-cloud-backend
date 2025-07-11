@@ -351,9 +351,11 @@ console.log(req.body)
           .join('')}
       </div>
       <p style="margin-top: 30px; font-size: 16px; color: #555;">
-        Want to explore more amazing albums?<br/>
+        Want to view and review album?<br/>
         
       </p>
+      <a href="https://pixel-cloud-three.vercel.app/view-login/${albumId}">View Album Here</>
+      
     </div>
   </div>
 `;
