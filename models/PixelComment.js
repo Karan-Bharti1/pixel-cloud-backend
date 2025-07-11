@@ -11,6 +11,10 @@ const commentSchema=new mongoose.Schema({
     ref:"PixelImage",
     required:true
 },
+userName:{
+    type:String,
+    required:true
+}
 },{
     timestamps:true
 })

@@ -282,7 +282,7 @@ app.get("/image/:imageId",verifyJWT,async(req,res)=>{
 
 app.post("/image/comment",verifyJWT, async (req, res) => {
   try {
-    const { imageId, text } = req.body;
+    const { imageId, text ,userName} = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(imageId)) {
       return res.status(400).json({ message: "Invalid image ID" });
@@ -290,7 +290,7 @@ app.post("/image/comment",verifyJWT, async (req, res) => {
 
     const newComment = new PixelComment({
       imageId: new mongoose.Types.ObjectId(imageId),
-      text
+      text,userName
     });
 
     const savedData = await newComment.save();
@@ -301,8 +301,6 @@ app.post("/image/comment",verifyJWT, async (req, res) => {
     return res.status(500).json({ message: "Failed to add comment to the image" });
   }
 });
-
-
 
 
 
@@ -411,6 +409,12 @@ console.log(err)
     res.status(500).json({message: "Failed to get Images Data"})
   }
 })
+
+
+
+
+
+
 app.listen(PORT,()=>{
     console.log("App is connected to the PORT:",PORT)
 })
