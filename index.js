@@ -26,7 +26,7 @@ const transporter=nodemailer.createTransport({
   }
 })
 const corsOptions = {
-  origin: 'https://pixel-cloud-three.vercel.app/', 
+  origin: 'https://pixel-cloud-three.vercel.app', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   credentials: true, 
 };
