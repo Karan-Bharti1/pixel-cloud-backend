@@ -189,9 +189,9 @@ npm start
 
 ## Author
 
-- [@Github](https://github.com/Karan-Bharti1)
-- [@LinkedIn](https://www.linkedin.com/in/bharti1999/)
-- [@For Frontend Code Refer](https://github.com/Karan-Bharti1/pixel-cloud)
+- [Github](https://github.com/Karan-Bharti1)
+- [LinkedIn](https://www.linkedin.com/in/bharti1999/)
+- [For Frontend Code Refer](https://github.com/Karan-Bharti1/pixel-cloud)
 
 
 
